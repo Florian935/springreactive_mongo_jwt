@@ -34,14 +34,17 @@ public class JwtTokenProvider {
     private SecretKey secretKey;
 
     @PostConstruct
-    public void init() {
+    private void initSecretKey() {
         String secret = Base64.getEncoder().encodeToString(jwtProperties.getSecretKey().getBytes());
         secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String createToken(Authentication authentication) {
-//        ReactiveSecurityContextHolder.getContext().map(context -> context.getAuthentication().getAuthorities()).log();
-//        ReactiveSecurityContextHolder.getContext().map(context -> context.getAuthentication().getPrincipal()).log();
+        Claims claims = generateClaims(authentication);
+        return createToken(claims);
+    }
+
+    private Claims generateClaims(Authentication authentication) {
         String userName = authentication.getName();
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Claims claims = Jwts.claims().setSubject(userName);
@@ -55,8 +58,13 @@ public class JwtTokenProvider {
             );
         }
 
+        return claims;
+    }
+
+    private String createToken(Claims claims) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + jwtProperties.getValidityInMs());
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
@@ -66,21 +74,28 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthenticationFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(token)
-                .getBody();
-
-        Object authoritiesClaim = claims.get(AUTHORITIES_KEY);
-
-        Collection<? extends GrantedAuthority> authorities = authoritiesClaim == null
-                ? AuthorityUtils.NO_AUTHORITIES
-                : AuthorityUtils.commaSeparatedStringToAuthorityList(authoritiesClaim.toString());
-
+        Claims claims = getBodyFromToken(token);
+        Collection<? extends GrantedAuthority> authorities = getGrantedAuthorities(claims);
         User principal = new User(claims.getSubject(), "", authorities);
 
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
+
+    private Claims getBodyFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private Collection<? extends GrantedAuthority> getGrantedAuthorities(Claims claims) {
+        String authoritiesClaim = String.valueOf(claims.get(AUTHORITIES_KEY));
+
+        return authoritiesClaim == null
+                ? AuthorityUtils.NO_AUTHORITIES
+                : AuthorityUtils.commaSeparatedStringToAuthorityList(authoritiesClaim);
+    }
+
 
     public boolean isValidToken(String token) {
         try {
