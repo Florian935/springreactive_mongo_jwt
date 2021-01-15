@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 
 import static com.security.jwt.configuration.utils.AuthoritiesConstants.ROLE_ADMIN;
 import static com.security.jwt.configuration.utils.AuthoritiesConstants.ROLE_USER;
+import static org.springframework.http.HttpMethod.*;
 
 /**
  * @author florian935
@@ -55,15 +56,17 @@ public class SecurityConfig {
     }
 
     private void configureAuthorizeExchangeSpec(AuthorizeExchangeSpec exchange) {
-        final String usersPath = "/users";
-        final String loginPath = "/login";
+        final String USERS_URI = "/users/**";
+        final String LOGIN_URI = "/login/**";
 
         exchange
-                .pathMatchers(HttpMethod.POST, loginPath + "/**").permitAll()
-                .pathMatchers(HttpMethod.GET, usersPath + "/**").authenticated()
-                .pathMatchers(HttpMethod.POST, usersPath + "/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
-                .pathMatchers(HttpMethod.DELETE, usersPath + "/{username}", usersPath).hasRole(ROLE_ADMIN)
-                .pathMatchers(usersPath + "/{username}").access(this::currentUserMatchesPath)
+                // login URI
+                .pathMatchers(POST, LOGIN_URI).permitAll()
+
+                // users URI
+                .pathMatchers(GET, "/users/{username}").access(this::currentUserMatchesPath)
+                .pathMatchers(POST, USERS_URI).hasAnyRole(ROLE_USER, ROLE_ADMIN)
+                .pathMatchers(DELETE, USERS_URI).hasRole(ROLE_ADMIN)
                 .anyExchange().authenticated();
     }
 
