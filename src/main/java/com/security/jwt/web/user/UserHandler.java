@@ -54,7 +54,7 @@ public class UserHandler {
 
     public Mono<ServerResponse> deleteAll(final ServerRequest request) {
         return userService.deleteAll()
-                .then(ok().build());
+                .then(noContent().build());
     }
 
     public Mono<ServerResponse> deleteById(final ServerRequest request) {
