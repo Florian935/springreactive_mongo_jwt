@@ -4,8 +4,6 @@ import com.security.jwt.security.jwt.filter.JwtTokenAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
@@ -25,6 +23,8 @@ import reactor.core.publisher.Mono;
 import static com.security.jwt.configuration.utils.AuthoritiesConstants.ROLE_ADMIN;
 import static com.security.jwt.configuration.utils.AuthoritiesConstants.ROLE_USER;
 import static org.springframework.http.HttpMethod.*;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 /**
  * @author florian935
@@ -72,12 +72,12 @@ public class SecurityConfig {
 
     private static Mono<Void> commence(ServerWebExchange response, AuthenticationException error) {
         return Mono.fromRunnable(() -> response
-                .getResponse().setStatusCode(HttpStatus.UNAUTHORIZED));
+                .getResponse().setStatusCode(UNAUTHORIZED));
     }
 
     private static Mono<Void> handle(ServerWebExchange response, AccessDeniedException error) {
         return Mono.fromRunnable(() -> response
-                .getResponse().setStatusCode(HttpStatus.FORBIDDEN));
+                .getResponse().setStatusCode(FORBIDDEN));
     }
 
     private Mono<AuthorizationDecision> currentUserMatchesPath(Mono<Authentication> authentication,
