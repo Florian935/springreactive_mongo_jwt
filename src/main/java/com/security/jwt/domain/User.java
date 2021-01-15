@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.util.List;
 
 import static com.security.jwt.configuration.utils.AuthoritiesConstants.ROLE_USER;
@@ -19,7 +20,9 @@ import static java.lang.String.format;
 @NoArgsConstructor
 @ToString
 @Builder
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 458L;
     @Id private String id;
     @NonNull @NotEmpty private String userName;
     @NonNull @NotEmpty private String password;

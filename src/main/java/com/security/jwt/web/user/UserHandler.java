@@ -1,6 +1,7 @@
 package com.security.jwt.web.user;
 
 import com.security.jwt.domain.User;
+import com.security.jwt.dto.UserDto;
 import com.security.jwt.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,14 +33,14 @@ public class UserHandler {
     public Mono<ServerResponse> findAll(final ServerRequest request) {
         return ok()
                 .contentType(APPLICATION_JSON)
-                .body(userService.findAll(), User.class);
+                .body(userService.findAll().map(UserDto::new), UserDto.class);
     }
 
     public Mono<ServerResponse> findById(final ServerRequest request) {
         String username = request.pathVariable("username");
 
         return userService.findByUserName(username)
-                .flatMap(user -> ok().bodyValue(user))
+                .flatMap(user -> ok().bodyValue(new UserDto(user)))
                 .switchIfEmpty(notFound().build());
     }
 
@@ -53,9 +54,7 @@ public class UserHandler {
 
         return userService.findByUserName(username)
                 .flatMap(user -> userService.deleteById(user.getId())
-                .then(ok().bodyValue(user)))
+                        .then(noContent().build()))
                 .switchIfEmpty(notFound().build());
-
-
     }
 }

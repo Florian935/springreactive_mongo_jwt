@@ -59,9 +59,9 @@ public class SecurityConfig {
         final String loginPath = "/login";
 
         exchange
-                .pathMatchers(HttpMethod.POST, loginPath).permitAll()
-                .pathMatchers(HttpMethod.GET, usersPath).authenticated()
-                .pathMatchers(HttpMethod.POST, usersPath).hasAnyRole(ROLE_USER, ROLE_ADMIN)
+                .pathMatchers(HttpMethod.POST, loginPath + "/**").permitAll()
+                .pathMatchers(HttpMethod.GET, usersPath + "/**").authenticated()
+                .pathMatchers(HttpMethod.POST, usersPath + "/**").hasAnyRole(ROLE_USER, ROLE_ADMIN)
                 .pathMatchers(HttpMethod.DELETE, usersPath + "/{username}", usersPath).hasRole(ROLE_ADMIN)
                 .pathMatchers(usersPath + "/{username}").access(this::currentUserMatchesPath)
                 .anyExchange().authenticated();

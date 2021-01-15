@@ -1,6 +1,7 @@
 package com.security.jwt.web.auth;
 
 import com.security.jwt.domain.auth.AuthenticationRequest;
+import com.security.jwt.domain.auth.AuthenticationResponse;
 import com.security.jwt.security.jwt.utils.JwtTokenProvider;
 import com.security.jwt.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.util.Map;
 
 import static org.springframework.web.reactive.function.server.ServerResponse.badRequest;
@@ -39,8 +41,8 @@ public class AuthenticationHandler {
                                                 authReq.getUserName(), authReq.getPassword()
                                         ))
                                 .map(tokenProvider::createToken))
-                        .map(jwt -> Map.of("access_token", jwt)),
-                        Map.class)
+                        .map(token -> new AuthenticationResponse(token, Instant.now())),
+                        AuthenticationResponse.class)
                 .switchIfEmpty(badRequest().build());
     }
 }
